@@ -1,0 +1,86 @@
+#
+#  Copyright 2020 bithon.org
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+version: "2.2"
+
+networks:
+  bithon-demo-net:
+    name: bithon-demo-net
+    ipam:
+      config:
+        - subnet: 192.168.0.0/16
+
+services:
+  bithon-server:
+    container_name: bithon-server
+    # This image locates at: https://hub.docker.com/repository/docker/bithon/server
+    # It's pushed by the bithon project's GitHub Action automatically
+    image: bithon/server:latest
+    ports:
+      - "9897:9897"
+      - "9895:9895"
+      - "9896:9896"
+      - "9898:9898"
+      - "9899:9899"
+    networks:
+      bithon-demo-net:
+        ipv4_address: 192.168.0.99
+    environment:
+      JAVA_OPTS: "-Xmx2g -Dbithon.disabled=true"
+      APP_OPTS: "--spring.profiles.include=webapp,collector,storage-jdbc --server.port=9897"
+      WITH_AGENT: "false"
+
+  user-service:
+    container_name: user-service
+    image: bithon/demo/user-service:latest
+    ports:
+      - "29526:29526"
+    depends_on:
+      - bithon-server
+    networks:
+      bithon-demo-net:
+        ipv4_address: 192.168.0.2
+    environment:
+      JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.tracing.samplingRate=100"
+
+  gateway:
+    container_name: gateway
+    image: bithon/demo/gateway:latest
+    ports:
+      - "29525:29525"
+    depends_on:
+      - user-service
+      - bithon-server
+    networks:
+      bithon-demo-net:
+        ipv4_address: 192.168.0.3
+    environment:
+      JAVA_OPTS: "-Xmx512m -Dbithon.agent.plugin.spring.bean.disabled=true -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.tracing.samplingRate=100"
+      APP_OPTS: "--bithon.demo.gateway.targetServer=192.168.0.2"
+
+  user-client:
+    container_name: user-client
+    image: bithon/demo/user-client:latest
+    ports:
+      - "29524:29524"
+    depends_on:
+      - bithon-server
+      - gateway
+    networks:
+      bithon-demo-net:
+        ipv4_address: 192.168.0.4
+    environment:
+      JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.tracing.samplingRate=100"
+      APP_OPTS: "--bithon.demo.user-client.apiHost=192.168.0.3"

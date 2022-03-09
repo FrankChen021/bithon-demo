@@ -1,0 +1,13 @@
+server:
+  port: 29524
+spring:
+  application:
+    name: bithon-demo-user-client
+  jackson:
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
+
+bithon:
+  demo:
+    user-client:
+      apiHost: localhost

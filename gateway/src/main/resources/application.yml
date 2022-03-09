@@ -1,0 +1,18 @@
+server:
+  port: 29525
+
+bithon:
+  demo:
+    gateway:
+      targetServer: localhost
+
+spring:
+  application:
+    name: bithon-demo-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          predicates:
+            - Path=/api/user/**
+          uri: http://${bithon.demo.gateway.targetServer}:29526

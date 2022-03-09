@@ -1,0 +1,17 @@
+server:
+  port: 29526
+spring:
+  application:
+    name: bithon-demo-user-service
+  druid:
+    biz-datasource:
+      url: jdbc:h2:mem:bithon-demo;MODE=mysql;
+      username: sa
+      password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        trace: true
+        web-allow-others: true
