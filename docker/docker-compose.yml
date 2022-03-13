@@ -23,6 +23,15 @@ networks:
         - subnet: 192.168.0.0/16
 
 services:
+  redis:
+    container_name: redis
+    image: redis:5.0.14
+    ports:
+      - "6379:6379"
+    networks:
+      bithon-demo-net:
+        ipv4_address: 192.168.0.100
+
   bithon-server:
     container_name: bithon-server
     # This image locates at: https://hub.docker.com/repository/docker/bithon/server
@@ -49,11 +58,13 @@ services:
       - "29526:29526"
     depends_on:
       - bithon-server
+      - redis
     networks:
       bithon-demo-net:
         ipv4_address: 192.168.0.2
     environment:
-      JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.tracing.samplingRate=100"
+      JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.tracing.samplingRate=100 -Dbithon.agent.plugin.jdbc.druid.isSQLMetricEnabled=true"
+      APP_OPTS: "--spring.redis.host=192.168.0.100"
 
   gateway:
     container_name: gateway
@@ -83,4 +94,4 @@ services:
         ipv4_address: 192.168.0.4
     environment:
       JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.tracing.samplingRate=100"
-      APP_OPTS: "--bithon.demo.user-client.apiHost=192.168.0.3"
+      APP_OPTS: "--bithon.demo.user-client.apiHost=192.168.0.3:29525"

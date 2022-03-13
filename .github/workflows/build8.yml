@@ -21,4 +21,4 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
       - name: Compilation
-        run: mvn clean install -DskipTests
+        run: mvn -B -ntp clean install -DskipTests

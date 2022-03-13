@@ -7,6 +7,8 @@ Following chart shows the topo of these 3 applications.
 ```mermaid
 flowchart LR
     user-client ---> gateway ---> user-service
+    user-service ---> redis
+    user-service ---> H2
 ```
 
 - gateway
@@ -35,9 +37,8 @@ sh docker/build-docker-images.sh
 ### Run
 
 ```bash
-cd docker && docker-compose pull bithon-server && docker-compose up
+sh docker/start-docker-compose.sh
 ```
-> NOTE: the `pull` option makes sure we're using the [latest image](https://hub.docker.com/r/bithon/server/tags) of [Bithon](https://github.com/FrankChen021/bithon).
 
 ### Check the monitoring
 

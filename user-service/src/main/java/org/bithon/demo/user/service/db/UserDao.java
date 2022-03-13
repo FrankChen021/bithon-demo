@@ -17,16 +17,13 @@
 package org.bithon.demo.user.service.db;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.demo.user.service.db.jooq.Tables;
+import org.bithon.demo.user.service.db.jooq.tables.pojos.User;
 import org.jooq.DSLContext;
-import org.jooq.Field;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
-import org.jooq.impl.TableImpl;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.jooq.Record1;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,57 +35,40 @@ public class UserDao {
 
     public UserDao(DSLContext dslContext) {
         this.dslContext = dslContext;
+
+        dslContext.createTableIfNotExists(Tables.USER)
+                  .columns(Tables.USER.fields())
+                  .indexes(Tables.USER.getIndexes())
+                  .execute();
     }
 
-    static class TestTable extends TableImpl {
-        private final Field<Long> id;
+    public User getUser(long uid) {
+        return this.dslContext.selectFrom(Tables.USER).where(Tables.USER.ID.eq(uid)).fetchOneInto(User.class);
+    }
 
-        public TestTable() {
-            super(DSL.name("bithon-demo-db"));
-            id = this.createField(DSL.name("id"), SQLDataType.BIGINT);
-        }
+    public Long create(String userName, String password) {
+        Record1<Long> id = this.dslContext.insertInto(Tables.USER)
+                                          .set(Tables.USER.NAME, userName)
+                                          .set(Tables.USER.PASSWORD, password)
+                                          .onDuplicateKeyIgnore()
+                                          .returningResult(Tables.USER.ID)
+                                          .fetchOne();
+        return id == null ? null : (Long) id.get(0);
+    }
+
+    public boolean setPassword(String userName, String oldPassword, String newPassword) {
+        return this.dslContext.update(Tables.USER)
+                              .set(Tables.USER.PASSWORD, newPassword)
+                              .where(Tables.USER.NAME.eq(userName))
+                              .and(Tables.USER.PASSWORD.eq(oldPassword))
+                              .execute() > 0;
     }
 
     private final DSLContext dslContext;
-    private final TestTable testTable = new TestTable();
-    private long id = 0;
 
-    @PostConstruct
-    void init() {
-        Table t = new TableImpl<>("bithon-demo-db");
-        dslContext.createTemporaryTableIfNotExists(testTable)
-                  .columns(testTable.id)
-                  .execute();
-    }
-
-    @Scheduled(fixedDelay = 1000)
-    void insertOperation() {
-        log.info("Insert into db...");
-        dslContext.insertInto(testTable)
-                  .set(testTable.id, id++)
-                  .execute();
-    }
-
-    @Scheduled(fixedDelay = 2000)
-    void updateOperation() {
-        log.info("Updating db...");
-        dslContext.update(testTable)
-                  .set(testTable.id, 0)
-                  .where(testTable.id.lt(id))
-                  .execute();
-    }
-
-    @Scheduled(fixedDelay = 3000)
-    void deleteOperation() {
-        log.info("Deleting from db...");
-        dslContext.delete(testTable)
-                  .where(testTable.id.eq(0L))
-                  .execute();
-    }
-
-    @Scheduled(fixedDelay = 2000)
-    void selectOperation() {
-        log.info("Selecting from db...");
-        dslContext.fetchCount(dslContext.selectFrom(testTable));
+    public void unregister(List<Long> uids) {
+        this.dslContext.deleteFrom(Tables.USER)
+                       .where(Tables.USER.ID.in(uids))
+                       .execute();
     }
 }

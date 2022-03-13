@@ -16,6 +16,7 @@
 
 package org.bithon.demo.user.service.redis;
 
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -29,8 +30,9 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 public class RedisConfig {
 
     @Bean
-    public JedisConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("localhost", 6379);
+    public JedisConnectionFactory redisConnectionFactory(RedisProperties properties) {
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(properties.getHost(), properties.getPort());
+        config.setDatabase(properties.getDatabase());
         return new JedisConnectionFactory(config);
     }
 

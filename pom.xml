@@ -85,6 +85,7 @@
                                 <exclude>**/*.txt</exclude>
                                 <exclude>**/*.proto</exclude>
                                 <exclude>**/*.g4</exclude>
+                                <exclude>**/*.sql</exclude>
                             </excludes>
                         </licenseSet>
                     </licenseSets>

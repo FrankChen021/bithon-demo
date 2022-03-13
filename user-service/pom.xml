@@ -73,6 +73,7 @@
       <groupId>org.bithon.demo</groupId>
       <artifactId>user-api</artifactId>
     </dependency>
+
   </dependencies>
 
   <build>
@@ -104,6 +105,59 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- The jOOQ code generator plugin -->
+      <plugin>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq-codegen-maven</artifactId>
+        <version>3.14.15</version>
+        <configuration>
+          <jdbc>
+            <driver>com.mysql.cj.jdbc.Driver</driver>
+            <url>jdbc:mysql://localhost:3306/bithon_demo?useSSL=false</url>
+            <user>root</user>
+            <password></password>
+          </jdbc>
+          <generator>
+            <database>
+              <name>org.jooq.meta.mysql.MySQLDatabase</name>
+              <inputSchema>bithon_demo</inputSchema><!-- database -->
+              <includes>.*</includes><!-- table whitelist, regex -->
+              <dateAsTimestamp>false</dateAsTimestamp>
+              <outputSchemaToDefault>true</outputSchemaToDefault>
+              <forcedTypes>
+                <forcedType>
+                  <name>BOOLEAN</name>
+                  <includeTypes>TINYINT\(2\)</includeTypes>
+                </forcedType>
+              </forcedTypes>
+              <!-- <unsignedTypes>false</unsignedTypes> -->
+            </database>
+            <generate>
+              <globalSchemaReferences>false</globalSchemaReferences>
+              <globalTableReferences>true</globalTableReferences>
+              <deprecated>false</deprecated>
+              <instanceFields>true</instanceFields>
+              <keys>true</keys>
+              <pojos>true</pojos>
+              <indexes>true</indexes>
+              <generatedAnnotation>false</generatedAnnotation>
+            </generate>
+            <target>
+              <packageName>org.bithon.demo.user.service.db.jooq</packageName>
+              <directory>src/main/java</directory>
+            </target>
+          </generator>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.20</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
     </plugins>
   </build>
 

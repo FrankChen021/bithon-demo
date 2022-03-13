@@ -10,4 +10,4 @@ spring:
 bithon:
   demo:
     user-client:
-      apiHost: localhost
+      apiHost: localhost:29525
