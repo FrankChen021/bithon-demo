@@ -20,12 +20,16 @@ import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
-import org.bithon.demo.user.api.RegisterUserRequest;
+import org.bithon.demo.user.api.ChangePasswordRequest;
 import org.bithon.demo.user.api.IUserApi;
+import org.bithon.demo.user.api.RegisterUserRequest;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -41,11 +45,62 @@ public class ClientTask {
                        .encoder(encoder)
                        .decoder(decoder)
                        .target(IUserApi.class,
-                               String.format("http://%s:29525", env.getProperty("bithon.demo.user-client.apiHost", "localhost")));
+                               String.format("http://%s",
+                                             env.getProperty("bithon.demo.user-client.apiHost", "localhost:29525")));
     }
+
+    private ArrayList<String> uids = new ArrayList<>();
 
     @Scheduled(fixedRate = 10, timeUnit = TimeUnit.SECONDS)
     public void test() {
-        System.out.println(userApi.register(new RegisterUserRequest()).getUid());
+        String name = "user" + Long.toHexString(ThreadLocalRandom.current().nextLong()).substring(4);
+        String password = Long.toHexString(ThreadLocalRandom.current().nextLong());
+
+        String uid = userApi.register(RegisterUserRequest.builder()
+                                                         .userName(name)
+                                                         .password(password)
+                                                         .build())
+                            .getUid();
+
+        String oldPassword = password;
+        for (int i = 0; i < 3; i++) {
+            String newPassword = Long.toHexString(ThreadLocalRandom.current().nextLong());
+            userApi.changePassword(ChangePasswordRequest.builder()
+                                                        .userName(name)
+                                                        .oldPassword(oldPassword)
+                                                        .newPassword(newPassword)
+                                                        .build());
+
+            oldPassword = newPassword;
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {
+            }
+        }
+
+        userApi.getProfileRequest(uid);
+
+        uids.add(uid);
+    }
+
+    @Scheduled(fixedRate = 30, timeUnit = TimeUnit.SECONDS)
+    public void testException() {
+        try {
+            // change password with wrong old password
+            userApi.changePassword(ChangePasswordRequest.builder()
+                                                        .userName("not_exist")
+                                                        .oldPassword("wrong")
+                                                        .newPassword("correct")
+                                                        .build());
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Scheduled(fixedRate = 10, timeUnit = TimeUnit.MINUTES)
+    public void clean() {
+        ArrayList<String> toDeletes = uids;
+        uids = new ArrayList<>();
+
+        userApi.unregister(toDeletes);
     }
 }

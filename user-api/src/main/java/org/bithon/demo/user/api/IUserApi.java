@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
+
 public interface IUserApi {
 
     @PostMapping("/api/user/register")
@@ -35,4 +37,7 @@ public interface IUserApi {
      */
     @GetMapping("/api/user/getProfile/{uid}")
     GetProfileResponse getProfileRequest(@PathVariable("uid") String uid);
+
+    @PostMapping("/api/user/unregister")
+    void unregister(ArrayList<String> uids);
 }

@@ -27,4 +27,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RegisterUserResponse {
     private String uid;
+    private String error;
 }

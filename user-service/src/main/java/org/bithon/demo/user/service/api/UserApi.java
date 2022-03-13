@@ -16,28 +16,84 @@
 
 package org.bithon.demo.user.service.api;
 
+import lombok.Builder;
+import lombok.Data;
 import org.bithon.demo.user.api.ChangePasswordRequest;
-import org.bithon.demo.user.api.RegisterUserRequest;
-import org.bithon.demo.user.api.RegisterUserResponse;
 import org.bithon.demo.user.api.GetProfileResponse;
 import org.bithon.demo.user.api.IUserApi;
+import org.bithon.demo.user.api.RegisterUserRequest;
+import org.bithon.demo.user.api.RegisterUserResponse;
+import org.bithon.demo.user.service.db.UserDao;
+import org.bithon.demo.user.service.db.jooq.tables.pojos.User;
+import org.bithon.demo.user.service.redis.RedisCache;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @RestController
 public class UserApi implements IUserApi {
 
+    private final UserDao userDao;
+    private final RedisCache cache;
+
+    public UserApi(UserDao userDao, RedisCache cache) {
+        this.userDao = userDao;
+        this.cache = cache;
+    }
+
     @Override
     public RegisterUserResponse register(RegisterUserRequest request) {
-        return RegisterUserResponse.builder().uid("1").build();
+        Long uid = userDao.create(request.getUserName(), request.getPassword());
+        if (uid == null) {
+            return RegisterUserResponse.builder().error(String.format("User [%s] exists.", request.getUserName())).build();
+        }
+        return RegisterUserResponse.builder().uid(uid.toString()).build();
     }
 
     @Override
     public void changePassword(ChangePasswordRequest request) {
-
+        if (!userDao.setPassword(request.getUserName(), request.getOldPassword(), request.getNewPassword())) {
+            throw new RuntimeException("User not exist or wrong password");
+        }
     }
 
     @Override
     public GetProfileResponse getProfileRequest(String uid) {
-        return null;
+        User user = cache.get(uid, Duration.ofMinutes(1), User.class, () -> userDao.getUser(Long.parseLong(uid)));
+        return GetProfileResponse.builder()
+                                 .name(user.getName())
+                                 .build();
+    }
+
+    @Override
+    public void unregister(ArrayList<String> uids) {
+        userDao.unregister(uids.stream().map(Long::parseLong).collect(Collectors.toList()));
+
+        cache.remove(uids);
+    }
+
+    @Data
+    @Builder
+    static class ExceptionEntity {
+        private String message;
+        private String stackTrace;
+        private String exception;
+        private String url;
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ExceptionEntity> exceptionHandler(HttpServletRequest req, Exception ex) {
+        return new ResponseEntity<>(ExceptionEntity.builder()
+                                                   .url(req.getRequestURI())
+                                                   .exception(ex.getClass().getName())
+                                                   .message(ex.getMessage())
+                                                   .stackTrace(ex.toString())
+                                                   .build(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

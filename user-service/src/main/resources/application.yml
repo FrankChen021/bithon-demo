@@ -15,3 +15,7 @@ spring:
       settings:
         trace: true
         web-allow-others: true
+  redis:
+    host: 127.0.01
+    port: 6379
+    database: 0
