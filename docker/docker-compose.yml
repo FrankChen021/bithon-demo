@@ -63,7 +63,7 @@ services:
       bithon-demo-net:
         ipv4_address: 192.168.0.2
     environment:
-      JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.tracing.samplingRate=100"
+      JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.tracing.samplingRate=100 -Dbithon.agent.plugin.jdbc.druid.isSQLMetricEnabled=true"
       APP_OPTS: "--spring.redis.host=192.168.0.100"
 
   gateway:
