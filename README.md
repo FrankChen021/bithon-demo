@@ -40,6 +40,8 @@ sh docker/build-docker-images.sh
 sh docker/start-docker-compose.sh
 ```
 
+> NOTE: If you find that there's an error saying `docker-compose: command not found` when executing above command, you need to follow the Docker [official site](https://docs.docker.com/compose/install/) to install docker-compose on your environment. 
+
 ### Check the monitoring
 
 After the docker-compose starts up, please visit [http://localhost:9897/web/home](http://localhost:9897/web/home) to view the monitoring.
