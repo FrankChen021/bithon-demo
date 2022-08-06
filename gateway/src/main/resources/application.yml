@@ -16,3 +16,7 @@ spring:
           predicates:
             - Path=/api/user/**
           uri: http://${bithon.demo.gateway.targetServer}:29526
+        - id: system-service
+          predicates:
+            - Path=/api/system/**
+          uri: http://${bithon.demo.gateway.targetServer}:29526

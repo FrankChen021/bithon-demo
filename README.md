@@ -40,7 +40,10 @@ sh docker/build-docker-images.sh
 sh docker/start-docker-compose.sh
 ```
 
-> NOTE: If you find that there's an error saying `docker-compose: command not found` when executing above command, you need to follow the Docker [official site](https://docs.docker.com/compose/install/) to install docker-compose on your environment. 
+> NOTE: 
+> 
+> 1. If you find that there's an error saying `docker-compose: command not found` when executing above command, you need to follow the Docker [official site](https://docs.docker.com/compose/install/) to install docker-compose on your environment.
+> 2. For running this demo on Mac M1, make sure this setting **Use Docker Compose V2** is enabled in the preference of Docker Desktop.
 
 ### Check the monitoring
 

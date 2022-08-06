@@ -28,18 +28,17 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class ClientTask {
+public class ClientScheduledTask {
     private final IUserApi userApi;
 
-    public ClientTask(Contract contract,
-                      Encoder encoder,
-                      Decoder decoder,
-                      Environment env) {
+    public ClientScheduledTask(Contract contract,
+                               Encoder encoder,
+                               Decoder decoder,
+                               Environment env) {
         userApi = Feign.builder()
                        .contract(contract)
                        .encoder(encoder)
