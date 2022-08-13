@@ -25,6 +25,7 @@ import org.bithon.demo.user.api.RegisterUserRequest;
 import org.bithon.demo.user.api.RegisterUserResponse;
 import org.bithon.demo.user.service.db.UserDao;
 import org.bithon.demo.user.service.db.jooq.tables.pojos.User;
+import org.bithon.demo.user.service.mongo.LogService;
 import org.bithon.demo.user.service.redis.RedisCache;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
@@ -42,9 +44,12 @@ public class UserApi implements IUserApi {
     private final UserDao userDao;
     private final RedisCache cache;
 
-    public UserApi(UserDao userDao, RedisCache cache) {
+    private final LogService logService;
+
+    public UserApi(UserDao userDao, RedisCache cache, LogService logService) {
         this.userDao = userDao;
         this.cache = cache;
+        this.logService = logService;
     }
 
     @Override
@@ -53,6 +58,7 @@ public class UserApi implements IUserApi {
         if (uid == null) {
             return RegisterUserResponse.builder().error(String.format("User [%s] exists.", request.getUserName())).build();
         }
+        logService.addLog(request.getUserName(), "REGISTER");
         return RegisterUserResponse.builder().uid(uid.toString()).build();
     }
 
@@ -76,6 +82,11 @@ public class UserApi implements IUserApi {
         userDao.unregister(uids.stream().map(Long::parseLong).collect(Collectors.toList()));
 
         cache.remove(uids);
+    }
+
+    @Override
+    public List<String> showLogs() {
+        return logService.getLogs();
     }
 
     @Data
