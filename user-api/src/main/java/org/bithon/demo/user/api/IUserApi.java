@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public interface IUserApi {
 
@@ -40,4 +41,7 @@ public interface IUserApi {
 
     @PostMapping("/api/user/unregister")
     void unregister(ArrayList<String> uids);
+
+    @PostMapping("/api/user/showLogs")
+    List<String> showLogs();
 }
