@@ -72,7 +72,7 @@ services:
       bithon-demo-net:
         ipv4_address: 192.168.0.2
     environment:
-      JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.tracing.samplingRate=100 -Dbithon.agent.plugin.jdbc.druid.isSQLMetricEnabled=true"
+      JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.agent.plugin.alibaba.druid.isSQLMetricEnabled=true -Dbithon.tracing.default.samplingRate=100 -Dbithon.tracing.quartz.samplingRate=100 -Dbithon.tracing.spring-scheduler.samplingRate=100"
       APP_OPTS: "--spring.redis.host=192.168.0.100 --spring.data.mongodb.uri=mongodb://192.168.0.101:27017/log"
 
   gateway:
@@ -87,7 +87,7 @@ services:
       bithon-demo-net:
         ipv4_address: 192.168.0.3
     environment:
-      JAVA_OPTS: "-Xmx512m -Dbithon.agent.plugin.spring.bean.disabled=true -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.tracing.samplingRate=100"
+      JAVA_OPTS: "-Xmx512m -Dbithon.agent.plugin.spring.bean.disabled=true -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899  -Dbithon.tracing.default.samplingRate=100 -Dbithon.tracing.quartz.samplingRate=100 -Dbithon.tracing.spring-scheduler.samplingRate=100"
       APP_OPTS: "--bithon.demo.gateway.targetServer=192.168.0.2"
 
   user-client:
@@ -102,5 +102,5 @@ services:
       bithon-demo-net:
         ipv4_address: 192.168.0.4
     environment:
-      JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.tracing.samplingRate=100"
+      JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899  -Dbithon.tracing.default.samplingRate=100 -Dbithon.tracing.quartz.samplingRate=100 -Dbithon.tracing.spring-scheduler.samplingRate=100"
       APP_OPTS: "--bithon.demo.user-client.apiHost=192.168.0.3:29525"
