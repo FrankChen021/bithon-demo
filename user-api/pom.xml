@@ -9,7 +9,6 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <groupId>org.bithon.demo</groupId>
   <artifactId>user-api</artifactId>
   <name>user-api</name>
   <description>user-api</description>
