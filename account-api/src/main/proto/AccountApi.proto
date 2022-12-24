@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package org.bithon.demo.account.api;
+
+option java_multiple_files = true;
+
+message GetBalanceRequest {
+    string userName = 1;
+    string password = 2;
+}
+
+message GetBalanceResponse {
+    double balance = 1;
+}
+
+
+// 4. service, unary request/response
+service IAccountApi {
+    rpc getBalance(GetBalanceRequest) returns (GetBalanceResponse);
+}

@@ -70,11 +70,21 @@ public class UserApi implements IUserApi {
     }
 
     @Override
-    public GetProfileResponse getProfileRequest(String uid) {
+    public GetProfileResponse getProfile(String uid) {
         User user = cache.get(uid, Duration.ofMinutes(1), User.class, () -> userDao.getUser(Long.parseLong(uid)));
         return GetProfileResponse.builder()
                                  .name(user.getName())
                                  .build();
+    }
+
+    @Override
+    public GetProfileResponse getProfile(String userName, String password) {
+        if ("Frank".equals(userName)) {
+            return GetProfileResponse.builder()
+                                     .name(userName)
+                                     .build();
+        }
+        return GetProfileResponse.builder().name(null).build();
     }
 
     @Override

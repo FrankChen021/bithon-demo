@@ -1,5 +1,7 @@
 #!/bin/sh
 
+/wait
+
 APP_NAME=$1
 APP_NS=$2
 APP_JAR=$3

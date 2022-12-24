@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,10 @@ public interface IUserApi {
      * This will demonstrate how Bithon folds all request path for different users into one for the metrics
      */
     @GetMapping("/api/user/getProfile/{uid}")
-    GetProfileResponse getProfileRequest(@PathVariable("uid") String uid);
+    GetProfileResponse getProfile(@PathVariable("uid") String uid);
+
+    @GetMapping("/api/user/getProfileByName")
+    GetProfileResponse getProfile(@RequestParam("name") String userName, @RequestParam("password") String password);
 
     @PostMapping("/api/user/unregister")
     void unregister(ArrayList<String> uids);
