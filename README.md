@@ -6,6 +6,7 @@ This demo ships 3 Java web-based applications to demonstrate a very simple distr
 Following chart shows the topo of these 3 applications.
 ```mermaid
 flowchart LR
+    account-client ---> account-service ---> gateway ---> user-service
     user-client ---> gateway ---> user-service
     user-service ---> redis
     user-service ---> H2
@@ -23,6 +24,13 @@ flowchart LR
 
     A client application that calls the APIs provided by `user-service` via `gateway`.
 
+- account-client
+
+    A gRPC client application that periodically send request to gRPC server which is hosted by `account-service`.
+
+- account-service
+
+    A gRPC server application that calls API implemented by `user-service` to simulate a complicated server call. 
 
 ## Run this demo
 
