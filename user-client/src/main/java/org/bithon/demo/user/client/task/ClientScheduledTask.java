@@ -77,7 +77,7 @@ public class ClientScheduledTask {
             }
         }
 
-        userApi.getProfileRequest(uid);
+        userApi.getProfile(uid);
 
         uids.add(uid);
     }

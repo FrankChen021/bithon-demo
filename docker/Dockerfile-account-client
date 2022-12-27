@@ -27,12 +27,15 @@ COPY . /src
 # Build Server
 WORKDIR /src
 RUN --mount=type=cache,target=/root/.m2 \
-      mvn -pl user-client -am \
+      mvn -pl account-client -am \
       clean package \
       -DskipTests
 
 FROM bithon/agent:latest
-COPY --from=builder /src/user-client/target/user-client.jar /opt/user-client.jar
+COPY --from=builder /src/account-client/target/account-client.jar /opt/account-client.jar
+
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
+RUN chmod +x /wait
 
 COPY docker/startup.sh /startup.sh
 RUN chmod +x /startup.sh
@@ -41,4 +44,4 @@ ENV JAVA_OPTS ""
 ENV APP_OPTS ""
 
 WORKDIR /opt
-ENTRYPOINT ["/startup.sh", "bithon-demo-user-client", "live", "user-client.jar"]
+ENTRYPOINT ["/startup.sh", "bithon-demo-account-client", "live", "account-client.jar"]

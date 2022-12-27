@@ -27,12 +27,12 @@ COPY . /src
 # Build Server
 WORKDIR /src
 RUN --mount=type=cache,target=/root/.m2 \
-      mvn -pl gateway -am \
+      mvn -pl account-service -am \
       clean package \
       -DskipTests
 
 FROM bithon/agent:latest
-COPY --from=builder /src/gateway/target/gateway.jar /opt/gateway.jar
+COPY --from=builder /src/account-service/target/account-service.jar /opt/account-service.jar
 
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
 RUN chmod +x /wait
@@ -44,4 +44,5 @@ ENV JAVA_OPTS ""
 ENV APP_OPTS ""
 
 WORKDIR /opt
-ENTRYPOINT ["/startup.sh", "bithon-demo-gateway", "live", "gateway.jar"]
+
+ENTRYPOINT ["/startup.sh", "bithon-demo-account-service", "live", "account-service.jar"]

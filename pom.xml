@@ -1,100 +1,179 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.6</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.7.7</version>
+    <relativePath/> <!-- lookup parent from repository -->
+  </parent>
 
-    <groupId>org.bithon.demo</groupId>
-    <artifactId>all</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <name>bithon-demo</name>
-    <packaging>pom</packaging>
-    <description>Demo project for Bithon</description>
+  <groupId>org.bithon.demo</groupId>
+  <artifactId>all</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <name>bithon-demo</name>
+  <packaging>pom</packaging>
+  <description>Demo project for Bithon</description>
 
-    <!-- Required info for sonatype -->
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
-        </license>
-    </licenses>
-    <inceptionYear>2022</inceptionYear>
+  <properties>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
 
-    <modules>
-        <module>user-api</module>
-        <module>user-service</module>
-        <module>user-client</module>
-        <module>gateway</module>
-    </modules>
+    <proto.version>3.21.7</proto.version>
+    <grpc.version>1.48.1</grpc.version>
+  </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.bithon.demo</groupId>
-                <artifactId>user-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+  <!-- Required info for sonatype -->
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+  <inceptionYear>2022</inceptionYear>
 
-    <build>
-        <plugins>
-            <!-- license checking -->
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <version>4.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                            <goal>remove</goal>
-                            <goal>format</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <headerDefinitions>
-                        <headerDefinition>licenses/style.xml</headerDefinition>
-                    </headerDefinitions>
-                    <licenseSets>
-                        <licenseSet>
-                            <header>licenses/template.txt</header>
-                            <excludes>
-                                <exclude>**/README</exclude>
-                                <exclude>**/jOOQ/**</exclude>
-                                <exclude>**/jooq/**</exclude>
-                                <exclude>src/test/java/org/bithon/component/brpc/example/protobuf</exclude>
-                                <exclude>**/src/main/resources/static/**</exclude>
-                                <exclude>**/*.properties</exclude>
-                                <exclude>**/*.sh</exclude>
-                                <exclude>**/*.yml</exclude>
-                                <exclude>**/.editorconfig</exclude>
-                                <exclude>**/.gitignore</exclude>
-                                <exclude>**/*.md</exclude>
-                                <exclude>**/*.xml</exclude>
-                                <exclude>**/*.html</exclude>
-                                <exclude>**/*.js</exclude>
-                                <exclude>**/*.css</exclude>
-                                <exclude>**/*.txt</exclude>
-                                <exclude>**/*.proto</exclude>
-                                <exclude>**/*.g4</exclude>
-                                <exclude>**/*.sql</exclude>
-                            </excludes>
-                        </licenseSet>
-                    </licenseSets>
-                    <strictCheck>true</strictCheck>
-                    <mapping>
-                        <java>SLASHSTAR_STYLE</java>
-                    </mapping>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+  <modules>
+    <!-- gRPC -->
+    <module>account-api</module>
+    <module>account-client</module>
+    <module>account-service</module>
+
+    <!-- Http Service -->
+    <module>user-api</module>
+    <module>user-service</module>
+    <module>user-client</module>
+
+    <!-- HTTP Gateway -->
+    <module>gateway</module>
+  </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Lombok -->
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.18.24</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>${proto.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.bithon.demo</groupId>
+        <artifactId>user-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bithon.demo</groupId>
+        <artifactId>account-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-bom</artifactId>
+        <version>${grpc.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>kr.motd.maven</groupId>
+          <artifactId>os-maven-plugin</artifactId>
+          <version>1.7.1</version>
+          <executions>
+            <execution>
+              <phase>initialize</phase>
+              <goals>
+                <goal>detect</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.xolstice.maven.plugins</groupId>
+          <artifactId>protobuf-maven-plugin</artifactId>
+          <version>0.6.1</version>
+          <configuration>
+            <protocArtifact>com.google.protobuf:protoc:${proto.version}:exe:${os.detected.classifier}</protocArtifact>
+            <pluginId>grpc-java</pluginId>
+            <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>compile</goal>
+                <goal>compile-custom</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <!-- license checking -->
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>4.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+              <goal>remove</goal>
+              <goal>format</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <headerDefinitions>
+            <headerDefinition>licenses/style.xml</headerDefinition>
+          </headerDefinitions>
+          <licenseSets>
+            <licenseSet>
+              <header>licenses/template.txt</header>
+              <excludes>
+                <exclude>**/README</exclude>
+                <exclude>**/jOOQ/**</exclude>
+                <exclude>**/jooq/**</exclude>
+                <exclude>src/test/java/org/bithon/component/brpc/example/protobuf</exclude>
+                <exclude>**/src/main/resources/static/**</exclude>
+                <exclude>**/*.properties</exclude>
+                <exclude>**/*.sh</exclude>
+                <exclude>**/*.yml</exclude>
+                <exclude>**/.editorconfig</exclude>
+                <exclude>**/.gitignore</exclude>
+                <exclude>**/*.md</exclude>
+                <exclude>**/*.xml</exclude>
+                <exclude>**/*.html</exclude>
+                <exclude>**/*.js</exclude>
+                <exclude>**/*.css</exclude>
+                <exclude>**/*.txt</exclude>
+                <exclude>**/*.proto</exclude>
+                <exclude>**/*.g4</exclude>
+                <exclude>**/*.sql</exclude>
+              </excludes>
+            </licenseSet>
+          </licenseSets>
+          <strictCheck>true</strictCheck>
+          <mapping>
+            <java>SLASHSTAR_STYLE</java>
+          </mapping>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

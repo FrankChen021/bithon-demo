@@ -26,14 +26,17 @@ services:
   redis:
     container_name: redis
     image: redis:5.0.14
+    hostname: redis
     ports:
       - "6379:6379"
     networks:
       bithon-demo-net:
         ipv4_address: 192.168.0.100
+
   mongodb:
     container_name: mongodb
     image: mongo:5.0
+    hostname: mongodb
     ports:
       - "27017:27017"
     networks:
@@ -45,6 +48,7 @@ services:
     # This image locates at: https://hub.docker.com/repository/docker/bithon/server
     # It's pushed by the bithon project's GitHub Action automatically
     image: bithon/server:latest
+    hostname: bithon-server
     ports:
       - "9897:9897"
       - "9895:9895"
@@ -55,13 +59,14 @@ services:
       bithon-demo-net:
         ipv4_address: 192.168.0.99
     environment:
-      JAVA_OPTS: "-Xmx2g -Dbithon.disabled=true"
-      APP_OPTS: "--spring.profiles.include=all-in-one --server.port=9897"
+      JAVA_OPTS: "-server -Xms2g -Xmx2g -Dbithon.disabled=true"
+      APP_OPTS: "--spring.profiles.active=all-in-one --server.port=9897"
       WITH_AGENT: "false"
 
   user-service:
     container_name: user-service
     image: bithon/demo/user-service:latest
+    hostname: user-service
     ports:
       - "29526:29526"
     depends_on:
@@ -72,12 +77,37 @@ services:
       bithon-demo-net:
         ipv4_address: 192.168.0.2
     environment:
-      JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.agent.plugin.alibaba.druid.isSQLMetricEnabled=true -Dbithon.tracing.samplingConfigs.default.samplingRate=100 -Dbithon.tracing.samplingConfigs.quartz.samplingRate=100 -Dbithon.tracing.samplingConfigs.spring-scheduler.samplingRate=100"
+      JAVA_OPTS: "-server -Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899 -Dbithon.agent.plugin.alibaba.druid.isSQLMetricEnabled=true -Dbithon.tracing.samplingConfigs.default.samplingRate=100 -Dbithon.tracing.samplingConfigs.quartz.samplingRate=100 -Dbithon.tracing.samplingConfigs.spring-scheduler.samplingRate=100"
       APP_OPTS: "--spring.redis.host=192.168.0.100 --spring.data.mongodb.uri=mongodb://192.168.0.101:27017/log"
+      WAIT_HOSTS: bithon-server:9897, redis:6379, mongodb:27017
+      WAIT_TIMEOUT: 180
+      WAIT_SLEEP_INTERVAL: 3
+
+  account-service:
+    container_name: account-service
+    image: bithon/demo/account-service:latest
+    hostname: account-service
+    ports:
+      - "29626:29626"
+    depends_on:
+      - bithon-server
+    networks:
+      bithon-demo-net:
+        ipv4_address: 192.168.0.10
+    environment:
+      JAVA_OPTS: "-Xmx512m
+      -Dbithon.application.port=29626
+      -Dbithon.agent.plugin.spring.bean.disabled=true 
+      -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899  -Dbithon.tracing.samplingConfigs.default.samplingRate=100 -Dbithon.tracing.samplingConfigs.quartz.samplingRate=100 -Dbithon.tracing.samplingConfigs.spring-scheduler.samplingRate=100"
+      APP_OPTS: "--bithon.demo.user-client.apiHost=192.168.0.3:29525"
+      WAIT_HOSTS: bithon-server:9897, user-service:29526
+      WAIT_TIMEOUT: 180
+      WAIT_SLEEP_INTERVAL: 3
 
   gateway:
     container_name: gateway
     image: bithon/demo/gateway:latest
+    hostname: gateway
     ports:
       - "29525:29525"
     depends_on:
@@ -89,10 +119,14 @@ services:
     environment:
       JAVA_OPTS: "-Xmx512m -Dbithon.agent.plugin.spring.bean.disabled=true -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899  -Dbithon.tracing.samplingConfigs.default.samplingRate=100 -Dbithon.tracing.samplingConfigs.quartz.samplingRate=100 -Dbithon.tracing.samplingConfigs.spring-scheduler.samplingRate=100"
       APP_OPTS: "--bithon.demo.gateway.targetServer=192.168.0.2"
+      WAIT_HOSTS: bithon-server:9897, user-service:29526, account-service:29626
+      WAIT_TIMEOUT: 180
+      WAIT_SLEEP_INTERVAL: 3
 
   user-client:
     container_name: user-client
     image: bithon/demo/user-client:latest
+    hostname: user-client
     ports:
       - "29524:29524"
     depends_on:
@@ -100,7 +134,32 @@ services:
       - gateway
     networks:
       bithon-demo-net:
-        ipv4_address: 192.168.0.4
+        ipv4_address: 192.168.0.20
     environment:
       JAVA_OPTS: "-Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899  -Dbithon.tracing.samplingConfigs.default.samplingRate=100 -Dbithon.tracing.samplingConfigs.quartz.samplingRate=100 -Dbithon.tracing.samplingConfigs.spring-scheduler.samplingRate=100"
       APP_OPTS: "--bithon.demo.user-client.apiHost=192.168.0.3:29525"
+      WAIT_HOSTS: bithon-server:9897, gateway:29525
+      WAIT_TIMEOUT: 180
+      WAIT_SLEEP_INTERVAL: 3
+
+  account-client:
+    container_name: account-client
+    image: bithon/demo/account-client:latest
+    hostname: account-client
+    ports:
+      - "29999:29999"
+    depends_on:
+      - bithon-server
+      - account-service
+    networks:
+      bithon-demo-net:
+        ipv4_address: 192.168.0.40
+    environment:
+      JAVA_OPTS: "-Dbithon.demo.account.service.address=192.168.0.10 
+      -Dbithon.demo.account.service.port=29626
+      -Dbithon.application.port=29999
+      -Xmx512m -Dbithon.dispatchers.metric.servers=192.168.0.99:9898 -Dbithon.dispatchers.tracing.servers=192.168.0.99:9895 -Dbithon.dispatchers.event.servers=192.168.0.99:9896 -Dbithon.controller.servers=192.168.0.99:9899  -Dbithon.tracing.samplingConfigs.default.samplingRate=100 -Dbithon.tracing.samplingConfigs.quartz.samplingRate=100 -Dbithon.tracing.samplingConfigs.spring-scheduler.samplingRate=100"
+      WAIT_HOSTS: bithon-server:9897, account-service:29626
+      WAIT_TIMEOUT: 180
+      WAIT_SLEEP_INTERVAL: 3
+:q:q
