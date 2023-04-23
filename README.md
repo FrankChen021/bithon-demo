@@ -1,13 +1,15 @@
 
 ## Description
 
-This demo ships 3 Java web-based applications to demonstrate a very simple distributed applications usage and how the Bithon monitors these applications.
+This demo ships 5 Java applications to demonstrate a basic use case in distributed deployment
+and how the Bithon monitors these applications.
 
-Following chart shows the topo of these 3 applications.
+The Following chart shows the TOPO of these 5 applications.
+
 ```mermaid
 flowchart LR
-    account-client ---> account-service ---> gateway ---> user-service
-    user-client ---> gateway ---> user-service
+    account-client --grpc--> account-service --http--> gateway --http--> user-service
+    user-client --http--> gateway --http--> user-service
     user-service ---> redis
     user-service ---> H2
 ```
@@ -26,7 +28,7 @@ flowchart LR
 
 - account-client
 
-    A gRPC client application that periodically send request to gRPC server which is hosted by `account-service`.
+    A gRPC client application that periodically sends request to gRPC server which is hosted by `account-service`.
 
 - account-service
 
