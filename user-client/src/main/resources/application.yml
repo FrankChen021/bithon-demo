@@ -11,3 +11,9 @@ bithon:
   demo:
     user-client:
       apiHost: localhost:29525
+
+feign:
+  httpclient:
+    enabled: false
+  okhttp:
+    enabled: true

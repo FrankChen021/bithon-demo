@@ -27,6 +27,10 @@
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-openfeign</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.github.openfeign</groupId>
+      <artifactId>feign-okhttp</artifactId>
+    </dependency>
 
     <!-- quartz -->
     <dependency>
@@ -43,6 +47,11 @@
     <dependency>
       <groupId>org.bithon.demo</groupId>
       <artifactId>user-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>okhttp</artifactId>
+      <version>4.5.0</version>
     </dependency>
 
   </dependencies>
