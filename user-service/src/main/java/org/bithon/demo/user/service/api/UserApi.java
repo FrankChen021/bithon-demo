@@ -18,13 +18,10 @@ package org.bithon.demo.user.service.api;
 
 import lombok.Builder;
 import lombok.Data;
-import org.bithon.demo.user.api.ChangePasswordRequest;
-import org.bithon.demo.user.api.GetProfileResponse;
-import org.bithon.demo.user.api.IUserApi;
-import org.bithon.demo.user.api.RegisterUserRequest;
-import org.bithon.demo.user.api.RegisterUserResponse;
+import org.bithon.demo.user.api.*;
 import org.bithon.demo.user.service.db.UserDao;
 import org.bithon.demo.user.service.db.jooq.tables.pojos.User;
+import org.bithon.demo.user.service.event.IEventPublisher;
 import org.bithon.demo.user.service.mongo.LogService;
 import org.bithon.demo.user.service.redis.RedisCache;
 import org.springframework.http.HttpStatus;
@@ -45,11 +42,16 @@ public class UserApi implements IUserApi {
     private final RedisCache cache;
 
     private final LogService logService;
+    private final IEventPublisher eventPublisher;
 
-    public UserApi(UserDao userDao, RedisCache cache, LogService logService) {
+    public UserApi(UserDao userDao,
+                   RedisCache cache,
+                   LogService logService,
+                   IEventPublisher eventPublisher) {
         this.userDao = userDao;
         this.cache = cache;
         this.logService = logService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -59,6 +61,7 @@ public class UserApi implements IUserApi {
             return RegisterUserResponse.builder().error(String.format("User [%s] exists.", request.getUserName())).build();
         }
         logService.addLog(request.getUserName(), "REGISTER");
+        eventPublisher.publishEvent("REGISTER");
         return RegisterUserResponse.builder().uid(uid.toString()).build();
     }
 

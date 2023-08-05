@@ -54,7 +54,7 @@ public class RedisCache {
         }
 
         T obj = supplier.get();
-        if ( obj != null ) {
+        if (obj != null) {
             try {
                 v = objectMapper.writeValueAsString(obj);
             } catch (JsonProcessingException e) {
@@ -67,5 +67,9 @@ public class RedisCache {
 
     public void remove(List<String> uids) {
         redis.delete(uids);
+    }
+
+    public void incr(String key) {
+        redis.opsForValue().increment(key);
     }
 }

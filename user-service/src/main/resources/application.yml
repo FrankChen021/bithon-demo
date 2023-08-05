@@ -23,3 +23,19 @@ spring:
     mongodb:
       uri: mongodb://127.0.0.1:27017/log
       database: log
+  kafka:
+    properties:
+      topic: bithon-demo-event
+    producer:
+      bootstrap-servers:
+        - localhost:9092
+    consumer:
+      bootstrap-servers:
+        - localhost:9092
+      group-id: bithon-event-consumer
+      client-id: bithon-event-consumer
+    listener:
+      concurrency: 1
+      poll-timeout: 1000
+      ack-mode: TIME
+      ack-time: 5000

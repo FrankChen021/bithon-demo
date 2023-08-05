@@ -16,6 +16,7 @@
 
 package org.bithon.demo.user.client.task;
 
+import feign.Client;
 import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
@@ -33,11 +34,13 @@ public class LivenessDetectionJob extends QuartzJobBean {
 
     private final ISystemApi systemApi;
 
-    public LivenessDetectionJob(Contract contract,
+    public LivenessDetectionJob(Client client,
+                                Contract contract,
                                 Encoder encoder,
                                 Decoder decoder,
                                 Environment env) {
         systemApi = Feign.builder()
+                         .client(client)
                          .contract(contract)
                          .encoder(encoder)
                          .decoder(decoder)
