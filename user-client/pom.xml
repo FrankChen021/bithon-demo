@@ -15,7 +15,7 @@
   <description>user-client</description>
 
   <properties>
-    <java.version>1.8</java.version>
+    <java.version>17</java.version>
     <spring-cloud.version>2021.0.5</spring-cloud.version>
   </properties>
   <dependencies>
@@ -43,6 +43,16 @@
     <dependency>
       <groupId>org.bithon.demo</groupId>
       <artifactId>user-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.github.openfeign</groupId>
+      <artifactId>feign-okhttp</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.github.openfeign</groupId>
+      <artifactId>feign-httpclient</artifactId>
     </dependency>
 
   </dependencies>

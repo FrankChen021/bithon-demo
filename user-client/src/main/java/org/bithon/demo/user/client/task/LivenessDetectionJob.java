@@ -21,6 +21,7 @@ import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import feign.okhttp.OkHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.demo.system.api.ISystemApi;
 import org.quartz.JobExecutionContext;
@@ -34,13 +35,12 @@ public class LivenessDetectionJob extends QuartzJobBean {
 
     private final ISystemApi systemApi;
 
-    public LivenessDetectionJob(Client client,
-                                Contract contract,
+    public LivenessDetectionJob(Contract contract,
                                 Encoder encoder,
                                 Decoder decoder,
                                 Environment env) {
         systemApi = Feign.builder()
-                         .client(client)
+                         .client(new OkHttpClient())
                          .contract(contract)
                          .encoder(encoder)
                          .decoder(decoder)

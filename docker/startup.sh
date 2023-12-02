@@ -15,4 +15,7 @@ else
   echo "Starting application WITHOUT agent: $JAVA_OPTS"
 fi
 
-exec java ${JAVA_OPTS} -jar /opt/${APP_JAR} ${APP_OPTS}
+exec java --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED \
+          --add-opens=java.base/sun.net.www=ALL-UNNAMED \
+          --add-opens=java.base/java.net=ALL-UNNAMED \
+          ${JAVA_OPTS} -jar /opt/${APP_JAR} ${APP_OPTS}

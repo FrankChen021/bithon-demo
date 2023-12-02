@@ -16,6 +16,7 @@
 
 package org.bithon.demo.user.service.api;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Builder;
 import lombok.Data;
 import org.bithon.demo.user.api.*;
@@ -29,7 +30,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;

@@ -14,25 +14,21 @@
 #   limitations under the License.
 #
 
-ARG JDK=8
-
-FROM maven:3.8.6-jdk-${JDK}-slim as builder
-
-RUN export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -qq update \
-    && apt-get -qq -y install --no-install-recommends git
-
+# Build
+ARG JDK=17
+FROM maven:3.9.5-amazoncorretto-${JDK}-debian-bookworm as builder
 COPY . /src
-
-# Build Server
 WORKDIR /src
 RUN --mount=type=cache,target=/root/.m2 \
       mvn -pl account-client -am \
       clean package \
       -DskipTests
 
-FROM bithon/agent:latest
+FROM bithon/agent:latest as agent
+
+FROM amazoncorretto:17.0.9-alpine3.18
 COPY --from=builder /src/account-client/target/account-client.jar /opt/account-client.jar
+COPY --from=agent /opt/agent-distribution /opt/agent-distribution
 
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
 RUN chmod +x /wait
