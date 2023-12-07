@@ -15,7 +15,7 @@
   <description>gateway</description>
   <properties>
     <java.version>17</java.version>
-    <spring-cloud.version>2021.0.5</spring-cloud.version>
+    <spring-cloud.version>2023.0.0</spring-cloud.version>
   </properties>
 
   <dependencies>
@@ -26,14 +26,14 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-resolver-dns-native-macos</artifactId>
-      <version>4.1.85.Final</version>
+      <version>4.1.90.Final</version>
       <scope>runtime</scope>
       <classifier>osx-x86_64</classifier>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-resolver-dns-native-macos</artifactId>
-      <version>4.1.85.Final</version>
+      <version>4.1.90.Final</version>
       <scope>runtime</scope>
       <classifier>osx-aarch_64</classifier>
     </dependency>

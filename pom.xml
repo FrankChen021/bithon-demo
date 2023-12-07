@@ -18,8 +18,8 @@
   <description>Demo project for Bithon</description>
 
   <properties>
-    <maven.compiler.source>8</maven.compiler.source>
-    <maven.compiler.target>8</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
 
     <proto.version>3.21.7</proto.version>
     <grpc.version>1.48.1</grpc.version>
