@@ -19,6 +19,7 @@ package org.bithon.demo.user.service.event.kafka;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
@@ -27,6 +28,7 @@ import org.bithon.demo.user.service.redis.RedisCache;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.BatchMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -70,7 +72,18 @@ public class KafkaEventConsumer implements BatchMessageListener<String, byte[]>,
         containerProperties.setPollTimeout(kafkaProperties.getListener().getPollTimeout().toMillis());
         containerProperties.setGroupId(kafkaProperties.getConsumer().getGroupId());
         containerProperties.setClientId(kafkaProperties.getClientId());
-        consumerContainer = new ConcurrentMessageListenerContainer<>(new DefaultKafkaConsumerFactory<>(consumerProperties), containerProperties);
+
+        DefaultKafkaConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProperties);
+        consumerFactory.addListener(new ConsumerFactory.Listener<>() {
+            @Override
+            public void consumerAdded(String id, Consumer<String, String> consumer) {
+            }
+
+            @Override
+            public void consumerRemoved(String id, Consumer<String, String> consumer) {
+            }
+        });
+        consumerContainer = new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
 
         // the Spring Kafka uses the bean name as prefix of thread name
         // Since tracing records thread name automatically to span logs, we explicitly set the bean name to improve the readability of span logs
