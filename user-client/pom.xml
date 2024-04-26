@@ -49,10 +49,15 @@
       <groupId>io.github.openfeign</groupId>
       <artifactId>feign-okhttp</artifactId>
     </dependency>
-
     <dependency>
       <groupId>io.github.openfeign</groupId>
       <artifactId>feign-httpclient</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>5.2.3</version>
     </dependency>
 
   </dependencies>

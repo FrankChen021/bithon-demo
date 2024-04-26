@@ -113,6 +113,7 @@ public class KafkaEventConsumer implements BatchMessageListener<String, byte[]>,
 
     @Override
     public void onMessage(List<ConsumerRecord<String, byte[]>> records) {
+        log.info("Processing events...");
         records.forEach((record) -> redis.incr(new String(record.value())));
     }
 }

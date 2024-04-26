@@ -16,6 +16,7 @@
 
 package org.bithon.demo.user.service.api;
 
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.demo.system.api.ISystemApi;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author frank.chen
  * @date 2022/8/6 19:08
  */
+@Slf4j
 @RestController
 public class SystemApi implements ISystemApi {
 
@@ -32,6 +34,8 @@ public class SystemApi implements ISystemApi {
 
     @Override
     public String ping() {
+        // add log to see if the injected traceId is correct and correctly propagated from client
+        log.info("===================PING=================");
         if (counter.incrementAndGet() % 5 == 0) {
             throw new RuntimeException("down");
         }

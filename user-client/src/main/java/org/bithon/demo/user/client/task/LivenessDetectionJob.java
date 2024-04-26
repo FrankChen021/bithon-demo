@@ -16,7 +16,6 @@
 
 package org.bithon.demo.user.client.task;
 
-import feign.Client;
 import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
@@ -26,31 +25,55 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.demo.system.api.ISystemApi;
 import org.quartz.JobExecutionContext;
 import org.springframework.core.env.Environment;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
-@Component
 public class LivenessDetectionJob extends QuartzJobBean {
 
-    private final ISystemApi systemApi;
+    // The job object is a one-time object
+    private static final AtomicInteger index = new AtomicInteger(0);
+
+    private final List<ISystemApi> systemApisList = new ArrayList<>();
 
     public LivenessDetectionJob(Contract contract,
                                 Encoder encoder,
                                 Decoder decoder,
                                 Environment env) {
-        systemApi = Feign.builder()
-                         .client(new OkHttpClient())
-                         .contract(contract)
-                         .encoder(encoder)
-                         .decoder(decoder)
-                         .target(ISystemApi.class,
-                                 String.format("http://%s",
-                                               env.getProperty("bithon.demo.user-client.apiHost", "localhost:29525")));
+        String target = String.format("http://%s",
+                                      env.getProperty("bithon.demo.user-client.apiHost", "localhost:29525"));
+
+        // Feign(okhttp by default)
+        systemApisList.add(Feign.builder()
+                                .client(new OkHttpClient())
+                                .contract(contract)
+                                .encoder(encoder)
+                                .decoder(decoder)
+                                .target(ISystemApi.class, target));
+
+        // JDK URLConnection
+        systemApisList.add((ISystemApi) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{ISystemApi.class}, (proxy, method, args) -> {
+            RestTemplate rt = new RestTemplate();
+            return rt.getForObject(target + "/api/system/ping", String.class);
+        }));
+
+        // Apache HttpComponents
+        systemApisList.add((ISystemApi) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class[]{ISystemApi.class}, (proxy, method, args) -> {
+            RestTemplate rt = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+            return rt.getForObject(target + "/api/system/ping", String.class);
+        }));
     }
 
     @Override
     protected void executeInternal(JobExecutionContext context) {
-        systemApi.ping();
+        int i = this.index.getAndIncrement() % systemApisList.size();
+        systemApisList.get(i).ping();
     }
 }
