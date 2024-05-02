@@ -19,12 +19,18 @@ package org.bithon.demo.user.service.redis;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
@@ -36,14 +42,30 @@ import java.util.function.Supplier;
 public class RedisCache {
 
     private final ObjectMapper objectMapper;
-    private final StringRedisTemplate redis;
+    private final List<StringRedisTemplate> redisClients = new ArrayList<>();
+    private final AtomicInteger index = new AtomicInteger(0);
 
-    public RedisCache(ObjectMapper objectMapper, StringRedisTemplate redis) {
+    public RedisCache(ObjectMapper objectMapper, RedisProperties redisProperties) {
         this.objectMapper = objectMapper;
-        this.redis = redis;
+
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisProperties.getHost(), redisProperties.getPort());
+        config.setDatabase(redisProperties.getDatabase());
+        JedisConnectionFactory connectionFactory = new JedisConnectionFactory(config);
+        connectionFactory.afterPropertiesSet();
+
+        LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(config);
+        lettuceConnectionFactory.afterPropertiesSet();
+        redisClients.add(new StringRedisTemplate(connectionFactory));
+        redisClients.add(new StringRedisTemplate(lettuceConnectionFactory));
+    }
+
+    private StringRedisTemplate getRedisClient() {
+        int idx = index.getAndIncrement();
+        return redisClients.get(idx % redisClients.size());
     }
 
     public <T> T get(String key, Duration expiration, Class<T> clazz, Supplier<T> supplier) {
+        StringRedisTemplate redis = getRedisClient();
         String v = redis.opsForValue().get(key);
         if (v != null) {
             try {
@@ -66,10 +88,12 @@ public class RedisCache {
     }
 
     public void remove(List<String> uids) {
+        StringRedisTemplate redis = getRedisClient();
         redis.delete(uids);
     }
 
-    public void incr(String key) {
+    public void increase(String key) {
+        StringRedisTemplate redis = getRedisClient();
         redis.opsForValue().increment(key);
     }
 }

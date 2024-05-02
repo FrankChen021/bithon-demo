@@ -6,9 +6,10 @@ This demo ships 3 Java web-based applications to demonstrate a very simple distr
 Following chart shows the topo of these 3 applications.
 ```mermaid
 flowchart LR
-    account-client ---> account-service ---> gateway ---> user-service
-    user-client ---> gateway ---> user-service
-    user-service ---> redis
+    account-client --GRPC--> account-service --http--> gateway --http--> user-service
+    user-client --http--> gateway --http--> user-service
+    user-service --jedis/lettuce--> redis
+    user-service --produce--> Kafka --consume--> user-service
     user-service ---> H2
 ```
 
