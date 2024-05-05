@@ -19,6 +19,8 @@ package org.bithon.demo.user.service.redis;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.config.Config;
+import org.redisson.spring.data.connection.RedissonConnectionFactory;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -45,18 +47,36 @@ public class RedisCache {
     private final List<StringRedisTemplate> redisClients = new ArrayList<>();
     private final AtomicInteger index = new AtomicInteger(0);
 
-    public RedisCache(ObjectMapper objectMapper, RedisProperties redisProperties) {
+    public RedisCache(ObjectMapper objectMapper, RedisProperties redisProperties) throws Exception {
         this.objectMapper = objectMapper;
 
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisProperties.getHost(), redisProperties.getPort());
         config.setDatabase(redisProperties.getDatabase());
-        JedisConnectionFactory connectionFactory = new JedisConnectionFactory(config);
-        connectionFactory.afterPropertiesSet();
 
-        LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(config);
-        lettuceConnectionFactory.afterPropertiesSet();
-        redisClients.add(new StringRedisTemplate(connectionFactory));
-        redisClients.add(new StringRedisTemplate(lettuceConnectionFactory));
+        // Jedis
+        {
+            JedisConnectionFactory connectionFactory = new JedisConnectionFactory(config);
+            connectionFactory.afterPropertiesSet();
+            redisClients.add(new StringRedisTemplate(connectionFactory));
+        }
+
+        // Lettuce
+        {
+            LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(config);
+            lettuceConnectionFactory.afterPropertiesSet();
+            redisClients.add(new StringRedisTemplate(lettuceConnectionFactory));
+        }
+
+        // Redisson
+        {
+            Config redissConfig = new Config();
+            redissConfig.useSingleServer()
+                        .setAddress(String.format("redis://%s:%d", redisProperties.getHost(), redisProperties.getPort()))
+                        .setDatabase(redisProperties.getDatabase());
+            RedissonConnectionFactory redissonConnectionFactory = new RedissonConnectionFactory(redissConfig);
+            redissonConnectionFactory.afterPropertiesSet();
+            redisClients.add(new StringRedisTemplate(redissonConnectionFactory));
+        }
     }
 
     private StringRedisTemplate getRedisClient() {
