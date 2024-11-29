@@ -22,9 +22,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.config.Config;
 import org.redisson.spring.data.connection.RedissonConnectionFactory;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.RedisTxCommands;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -112,8 +116,20 @@ public class RedisCache {
         redis.delete(uids);
     }
 
+    /**
+     * execute in transactional and batch way
+     * See: https://github.com/FrankChen021/bithon/pull/915
+     */
     public void increase(String key) {
         StringRedisTemplate redis = getRedisClient();
-        redis.opsForValue().increment(key);
+
+        redis.execute((RedisCallback<Object>) connection -> {
+            RedisTxCommands txCommands = connection.commands();
+
+            txCommands.multi();
+            connection.stringCommands().incr(key.getBytes());
+            txCommands.exec();
+            return null;
+        });
     }
 }
