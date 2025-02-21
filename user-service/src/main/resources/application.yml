@@ -15,11 +15,11 @@ spring:
       settings:
         trace: true
         web-allow-others: true
-  redis:
-    host: 127.0.0.1
-    port: 6379
-    database: 0
   data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
     mongodb:
       uri: mongodb://127.0.0.1:27017/log
       database: log
