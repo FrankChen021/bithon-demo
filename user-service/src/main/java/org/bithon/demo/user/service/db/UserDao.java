@@ -17,6 +17,8 @@
 package org.bithon.demo.user.service.db;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.agent.sdk.tracing.ISpan;
+import org.bithon.agent.sdk.tracing.TraceContext;
 import org.bithon.demo.user.service.db.jooq.Tables;
 import org.bithon.demo.user.service.db.jooq.tables.pojos.User;
 import org.jooq.DSLContext;
@@ -47,13 +49,18 @@ public class UserDao {
     }
 
     public Long create(String userName, String password) {
-        Record1<Long> id = this.dslContext.insertInto(Tables.USER)
-                                          .set(Tables.USER.NAME, userName)
-                                          .set(Tables.USER.PASSWORD, password)
-                                          .onDuplicateKeyIgnore()
-                                          .returningResult(Tables.USER.ID)
-                                          .fetchOne();
-        return id == null ? null : (Long) id.get(0);
+        try (ISpan span = TraceContext.newScopedSpan()) {
+            span.name("UserDao.create")
+                .tag("userName", userName)
+                .start();
+            Record1<Long> id = this.dslContext.insertInto(Tables.USER)
+                                              .set(Tables.USER.NAME, userName)
+                                              .set(Tables.USER.PASSWORD, password)
+                                              .onDuplicateKeyIgnore()
+                                              .returningResult(Tables.USER.ID)
+                                              .fetchOne();
+            return id == null ? null : (Long) id.get(0);
+        }
     }
 
     public boolean setPassword(String userName, String oldPassword, String newPassword) {

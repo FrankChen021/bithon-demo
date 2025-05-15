@@ -36,6 +36,7 @@ public class SystemApi implements ISystemApi {
     public String ping() {
         // add log to see if the injected traceId is correct and correctly propagated from client
         log.info("===================PING=================");
+
         if (counter.incrementAndGet() % 5 == 0) {
             throw new RuntimeException("down");
         }

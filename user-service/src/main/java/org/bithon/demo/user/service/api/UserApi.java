@@ -19,7 +19,13 @@ package org.bithon.demo.user.service.api;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Builder;
 import lombok.Data;
-import org.bithon.demo.user.api.*;
+import org.bithon.agent.sdk.tracing.ISpan;
+import org.bithon.agent.sdk.tracing.TraceContext;
+import org.bithon.demo.user.api.ChangePasswordRequest;
+import org.bithon.demo.user.api.GetProfileResponse;
+import org.bithon.demo.user.api.IUserApi;
+import org.bithon.demo.user.api.RegisterUserRequest;
+import org.bithon.demo.user.api.RegisterUserResponse;
 import org.bithon.demo.user.service.db.UserDao;
 import org.bithon.demo.user.service.db.jooq.tables.pojos.User;
 import org.bithon.demo.user.service.event.IEventPublisher;
@@ -56,12 +62,22 @@ public class UserApi implements IUserApi {
 
     @Override
     public RegisterUserResponse register(RegisterUserRequest request) {
-        Long uid = userDao.create(request.getUserName(), request.getPassword());
-        if (uid == null) {
-            return RegisterUserResponse.builder().error(String.format("User [%s] exists.", request.getUserName())).build();
+        Long uid;
+        try (ISpan span = TraceContext.newScopedSpan()) {
+            span.name("dao#create").start();
+            uid = userDao.create(request.getUserName(), request.getPassword());
+            if (uid == null) {
+                return RegisterUserResponse.builder().error(String.format("User [%s] exists.", request.getUserName())).build();
+            }
         }
+
         logService.addLog(request.getUserName(), "REGISTER");
-        eventPublisher.publishEvent("REGISTER");
+
+        try (ISpan span = TraceContext.newScopedSpan()) {
+            span.name("event#publish").start();
+            eventPublisher.publishEvent("REGISTER");
+        }
+
         return RegisterUserResponse.builder().uid(uid.toString()).build();
     }
 
