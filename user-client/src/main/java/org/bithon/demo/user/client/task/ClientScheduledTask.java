@@ -21,40 +21,102 @@ import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.bithon.demo.user.api.ChangePasswordRequest;
+import org.bithon.demo.user.api.GetProfileResponse;
 import org.bithon.demo.user.api.IUserApi;
 import org.bithon.demo.user.api.RegisterUserRequest;
+import org.bithon.demo.user.api.RegisterUserResponse;
 import org.springframework.core.env.Environment;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class ClientScheduledTask {
-    private final IUserApi userApi;
+    /**
+     * client api backed by different http client implementations, just for test purpose
+     */
+    private final List<IUserApi> userApiList = new ArrayList<>();
+    private final AtomicInteger userApiIndex = new AtomicInteger(0);
+    private ArrayList<String> uids = new ArrayList<>();
 
     public ClientScheduledTask(Contract contract,
                                Encoder encoder,
                                Decoder decoder,
                                Environment env) {
-        userApi = Feign.builder()
-                       .contract(contract)
-                       .encoder(encoder)
-                       .decoder(decoder)
-                       .target(IUserApi.class,
-                               String.format("http://%s",
-                                             env.getProperty("bithon.demo.user-client.apiHost", "localhost:29525")));
+        String endpoint = String.format(
+            "http://%s",
+            env.getProperty("bithon.demo.user-client.apiHost", "localhost:29525")
+        );
+        userApiList.add(Feign.builder()
+                             .contract(contract)
+                             .encoder(encoder)
+                             .decoder(decoder)
+                             .target(IUserApi.class, endpoint));
+
+        // add a Spring RestClient which is based o java.net.http.HttpClient based implementation
+        userApiList.add(new IUserApi() {
+            final RestClient client = RestClient.builder()
+                                                .requestFactory(new JdkClientHttpRequestFactory())
+                                                .baseUrl(endpoint)
+                                                .build();
+
+            @Override
+            public RegisterUserResponse register(RegisterUserRequest request) {
+                return client
+                    .post()
+                    .uri("/api/user/register")
+                    .header("Content-Type", "application/json")
+                    .body(request)
+                    .retrieve()
+                    .body(RegisterUserResponse.class);
+            }
+
+            @Override
+            public void changePassword(ChangePasswordRequest request) {
+            }
+
+            @Override
+            public GetProfileResponse getProfile(String uid) {
+                return client
+                    .get()
+                    .uri(String.format("/api/user/getProfile/%s", uid))
+                    .retrieve()
+                    .body(GetProfileResponse.class);
+            }
+
+            @Override
+            public GetProfileResponse getProfile(String userName, String password) {
+                return null;
+            }
+
+            @Override
+            public void unregister(ArrayList<String> uids) {
+            }
+
+            @Override
+            public List<String> showLogs() {
+                return List.of();
+            }
+        });
     }
 
-    private ArrayList<String> uids = new ArrayList<>();
+    private IUserApi nextUserApi() {
+        return userApiList.get(userApiIndex.getAndIncrement() % userApiList.size());
+    }
 
     @Scheduled(fixedRate = 10, timeUnit = TimeUnit.SECONDS)
     public void test() {
         String name = "user" + Long.toHexString(ThreadLocalRandom.current().nextLong()).substring(4);
         String password = Long.toHexString(ThreadLocalRandom.current().nextLong());
 
+        IUserApi userApi = nextUserApi();
         String uid = userApi.register(RegisterUserRequest.builder()
                                                          .userName(name)
                                                          .password(password)
@@ -84,6 +146,7 @@ public class ClientScheduledTask {
 
     @Scheduled(fixedRate = 30, timeUnit = TimeUnit.SECONDS)
     public void testException() {
+        IUserApi userApi = nextUserApi();
         try {
             // change password with wrong old password
             userApi.changePassword(ChangePasswordRequest.builder()
@@ -100,6 +163,6 @@ public class ClientScheduledTask {
         ArrayList<String> toDeletes = uids;
         uids = new ArrayList<>();
 
-        userApi.unregister(toDeletes);
+        nextUserApi().unregister(toDeletes);
     }
 }

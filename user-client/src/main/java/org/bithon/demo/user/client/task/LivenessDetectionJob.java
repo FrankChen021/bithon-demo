@@ -73,7 +73,7 @@ public class LivenessDetectionJob extends QuartzJobBean {
 
     @Override
     protected void executeInternal(JobExecutionContext context) {
-        int i = this.index.getAndIncrement() % systemApisList.size();
+        int i = index.getAndIncrement() % systemApisList.size();
         systemApisList.get(i).ping();
     }
 }

@@ -60,6 +60,11 @@
       <version>5.2.3</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.projectreactor.netty</groupId>
+      <artifactId>reactor-netty-http</artifactId>
+    </dependency>
+
   </dependencies>
   <dependencyManagement>
     <dependencies>

@@ -24,10 +24,8 @@ import io.grpc.stub.StreamObserver;
 import org.bithon.demo.account.api.GetBalanceRequest;
 import org.bithon.demo.account.api.GetBalanceResponse;
 import org.bithon.demo.account.api.IAccountApiGrpc;
-import org.bithon.demo.user.api.GetProfileResponse;
 import org.bithon.demo.user.api.IUserApi;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicLong;
 

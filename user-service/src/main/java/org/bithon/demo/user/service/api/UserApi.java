@@ -19,7 +19,8 @@ package org.bithon.demo.user.service.api;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Builder;
 import lombok.Data;
-import org.bithon.agent.sdk.tracing.ISpan;
+import org.bithon.agent.sdk.tracing.ISpanScope;
+import org.bithon.agent.sdk.tracing.ITraceScope;
 import org.bithon.agent.sdk.tracing.TraceContext;
 import org.bithon.demo.user.api.ChangePasswordRequest;
 import org.bithon.demo.user.api.GetProfileResponse;
@@ -63,8 +64,12 @@ public class UserApi implements IUserApi {
     @Override
     public RegisterUserResponse register(RegisterUserRequest request) {
         Long uid;
-        try (ISpan span = TraceContext.newScopedSpan()) {
-            span.name("dao#create").start();
+
+        // Use the SDK API to create a span
+        try (ISpanScope span = TraceContext.newScopedSpan("dao#create")
+                                           .create()) {
+
+            // business code
             uid = userDao.create(request.getUserName(), request.getPassword());
             if (uid == null) {
                 return RegisterUserResponse.builder().error(String.format("User [%s] exists.", request.getUserName())).build();
@@ -73,10 +78,33 @@ public class UserApi implements IUserApi {
 
         logService.addLog(request.getUserName(), "REGISTER");
 
-        try (ISpan span = TraceContext.newScopedSpan()) {
-            span.name("event#publish").start();
-            eventPublisher.publishEvent("REGISTER");
-        }
+        //
+        // Use the SDK API to create a trace for async processing
+        //
+        String traceId = TraceContext.currentTraceId();
+        String parentId = TraceContext.currentSpanId();
+        new Thread(() -> {
+            try (ITraceScope traceScope = TraceContext.newTrace("event#publish")
+                                                      .parent(traceId, parentId)
+                                                      .attach()) {
+                // Update span info(optional)
+                traceScope.currentSpan()
+                          .method(eventPublisher.getClass(), "publishEvent");
+
+                // simulate some processing time
+                try (ISpanScope span = TraceContext.newScopedSpan("sleepBeforePublish")
+                                                   .create()) {
+
+                    // simulate event serialization time
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+
+                // business code
+                eventPublisher.publishEvent("REGISTER");
+            }
+        }).start();
 
         return RegisterUserResponse.builder().uid(uid.toString()).build();
     }
